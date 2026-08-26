@@ -1,0 +1,65 @@
+group = "io.qualtive.qualtive"
+version = "0.0.1"
+
+buildscript {
+    val kotlinVersion = "2.4.0"
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:9.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
+    }
+}
+
+plugins {
+    id("com.android.library")
+}
+
+android {
+    namespace = "io.qualtive.qualtive"
+
+    compileSdk = 37
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/kotlin")
+        }
+    }
+
+    defaultConfig {
+        minSdk = 24
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
+dependencies {
+    // Pinned to https://github.com/nightshift-habits/qualtive-client-android/commit/b9739f913d28b026b302e167fdc3db16551d5f3c
+    implementation("io.qualtive:client:0.1.0-20260827.201847-2")
+}

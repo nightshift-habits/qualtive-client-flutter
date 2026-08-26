@@ -1,0 +1,3 @@
+[submodule "qualtive/darwin/qualtive/qualtive-client-swift"]
+	path = qualtive/darwin/qualtive/qualtive-client-swift
+	url = https://github.com/nightshift-habits/qualtive-client-swift.git

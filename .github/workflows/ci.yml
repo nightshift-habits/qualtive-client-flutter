@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get dependencies
+        working-directory: qualtive
+        run: flutter pub get
+      - name: Analyze
+        working-directory: qualtive
+        run: dart analyze --fatal-infos
+      - name: Test
+        working-directory: qualtive
+        run: flutter test
+      - name: Get demo dependencies
+        working-directory: demo
+        run: flutter pub get
+      - name: Analyze demo
+        working-directory: demo
+        run: dart analyze --fatal-infos
+      - name: Test demo
+        working-directory: demo
+        run: flutter test
