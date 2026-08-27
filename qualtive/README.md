@@ -24,5 +24,7 @@ This library targets iOS and Android. The Dart API is the public surface; native
 ```dart
 import 'package:qualtive/qualtive.dart';
 
-final qualtive = Qualtive();
+final qualtive = Qualtive(containerId: 'my-company');
+final enquiry = await qualtive.fetchEnquiry('my-enquiry');
+print(enquiry.name);
 ```

@@ -2,13 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qualtive_demo/main.dart';
 
 void main() {
-  testWidgets('shows demo scaffolding', (WidgetTester tester) async {
+  testWidgets('shows fetch enquiry form', (WidgetTester tester) async {
     await tester.pumpWidget(const DemoApp());
 
     expect(find.text('Qualtive demo'), findsOneWidget);
-    expect(
-      find.text('Plugin scaffolding. Client API lands in a later release.'),
-      findsOneWidget,
-    );
+    expect(find.text('Fetch enquiry'), findsOneWidget);
+    expect(find.text('Container id'), findsOneWidget);
+    expect(find.text('Enquiry id / slug'), findsOneWidget);
   });
 }
