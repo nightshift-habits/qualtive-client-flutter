@@ -46,6 +46,7 @@ extension QualtivePlugin {
     let locale = Locale(identifier: localeTag.replacingOccurrences(of: "-", with: "_"))
     let collection = Collection(
       containerId: ContainerId(containerId),
+      workspaceId: readWorkspaceId(args["workspaceId"]),
       enquiryId: EnquiryId(enquiryId)
     )
 
@@ -98,6 +99,7 @@ extension QualtivePlugin {
     let locale = Locale(identifier: localeTag.replacingOccurrences(of: "-", with: "_"))
     let collection = Collection(
       containerId: ContainerId(containerId),
+      workspaceId: readWorkspaceId(args["workspaceId"]),
       enquiryId: EnquiryId(enquiryId)
     )
     let user = readUser(args["user"])
@@ -184,13 +186,15 @@ extension QualtivePlugin {
       return
     }
 
+    let workspaceId = readWorkspaceId(args["workspaceId"])
     nonisolated(unsafe) let reply = result
     Task {
       let value: Any
       do {
         let attachment = try await AttachmentController().create(
           from: upload,
-          to: ContainerId(containerId)
+          to: ContainerId(containerId),
+          workspaceId: workspaceId
         )
         value = ["id": attachment.id]
       } catch let error as AttachmentController.UploadError {
@@ -267,6 +271,14 @@ private enum ChannelDecodeError: Error {
       return detail
     }
   }
+}
+
+private func readWorkspaceId(_ raw: Any?) -> WorkspaceId? {
+  guard let string = raw as? String else {
+    return nil
+  }
+  let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+  return trimmed.isEmpty ? nil : WorkspaceId(trimmed)
 }
 
 private func readUser(_ raw: Any?) -> User {

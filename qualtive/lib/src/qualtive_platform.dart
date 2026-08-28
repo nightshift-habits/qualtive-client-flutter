@@ -20,6 +20,7 @@ abstract class QualtivePlatform extends PlatformInterface {
   /// Fetches an enquiry as a [StandardMessageCodec] map.
   Future<Map<Object?, Object?>> fetchEnquiry({
     required String containerId,
+    String? workspaceId,
     required String enquiryId,
     required String locale,
     String? previewToken,
@@ -30,6 +31,7 @@ abstract class QualtivePlatform extends PlatformInterface {
   /// Posts an entry. Success map contains `id`.
   Future<Map<Object?, Object?>> post({
     required String containerId,
+    String? workspaceId,
     required String enquiryId,
     required String locale,
     required List<Map<String, Object?>> content,
@@ -43,6 +45,7 @@ abstract class QualtivePlatform extends PlatformInterface {
   /// Uploads an attachment from [bytes] or [path]. Success map contains `id`.
   Future<Map<Object?, Object?>> uploadAttachment({
     required String containerId,
+    String? workspaceId,
     required String locale,
     required String contentType,
     Uint8List? bytes,
@@ -53,16 +56,16 @@ abstract class QualtivePlatform extends PlatformInterface {
 }
 
 class MethodChannelQualtive extends QualtivePlatform {
-  MethodChannelQualtive({
-    MethodChannel? methodChannel,
-  }) : methodChannel =
-           methodChannel ?? const MethodChannel('io.qualtive.qualtive');
+  MethodChannelQualtive({MethodChannel? methodChannel})
+    : methodChannel =
+          methodChannel ?? const MethodChannel('io.qualtive.qualtive');
 
   final MethodChannel methodChannel;
 
   @override
   Future<Map<Object?, Object?>> fetchEnquiry({
     required String containerId,
+    String? workspaceId,
     required String enquiryId,
     required String locale,
     String? previewToken,
@@ -72,6 +75,7 @@ class MethodChannelQualtive extends QualtivePlatform {
         'fetchEnquiry',
         <String, Object?>{
           'containerId': containerId,
+          'workspaceId': workspaceId,
           'enquiryId': enquiryId,
           'locale': locale,
           'previewToken': previewToken,
@@ -91,6 +95,7 @@ class MethodChannelQualtive extends QualtivePlatform {
   @override
   Future<Map<Object?, Object?>> post({
     required String containerId,
+    String? workspaceId,
     required String enquiryId,
     required String locale,
     required List<Map<String, Object?>> content,
@@ -103,6 +108,7 @@ class MethodChannelQualtive extends QualtivePlatform {
         'post',
         <String, Object?>{
           'containerId': containerId,
+          'workspaceId': workspaceId,
           'enquiryId': enquiryId,
           'locale': locale,
           'content': content,
@@ -123,6 +129,7 @@ class MethodChannelQualtive extends QualtivePlatform {
   @override
   Future<Map<Object?, Object?>> uploadAttachment({
     required String containerId,
+    String? workspaceId,
     required String locale,
     required String contentType,
     Uint8List? bytes,
@@ -133,6 +140,7 @@ class MethodChannelQualtive extends QualtivePlatform {
         'uploadAttachment',
         <String, Object?>{
           'containerId': containerId,
+          'workspaceId': workspaceId,
           'locale': locale,
           'contentType': contentType,
           'bytes': bytes,

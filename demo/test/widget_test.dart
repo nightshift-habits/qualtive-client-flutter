@@ -9,6 +9,7 @@ void main() {
     expect(find.text('Fetch enquiry'), findsOneWidget);
     expect(find.text('Post sample entry'), findsOneWidget);
     expect(find.text('Container id'), findsOneWidget);
+    expect(find.text('Workspace id (optional)'), findsOneWidget);
     expect(find.text('Enquiry id / slug'), findsOneWidget);
   });
 }

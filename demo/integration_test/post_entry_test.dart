@@ -30,6 +30,27 @@ void main() {
     expect(entry.id, greaterThan(0));
   });
 
+  testWidgets('posts a sample entry to ci-test/flutter-2 with a workspace', (
+    tester,
+  ) async {
+    final entry =
+        await Qualtive(containerId: 'ci-test', workspaceId: 'ci-test-2').post(
+          'flutter-2',
+          content: [
+            EntryScore(value: 75),
+            const EntryText(value: 'Hello world!'),
+            const EntrySelect(value: 'Selected'),
+            const EntryMultiselect(values: ['Multi 1', 'Multi 2']),
+          ],
+          user: const User(id: 'ci-flutter'),
+          customAttributes: const {'Age': '23'},
+          options: options,
+        );
+
+    expect(entry.id, isNotNull);
+    expect(entry.id, greaterThan(0));
+  });
+
   testWidgets('unknown enquiry post is not found', (tester) async {
     expect(
       () => Qualtive(containerId: 'ci-test').post(

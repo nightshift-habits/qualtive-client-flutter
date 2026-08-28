@@ -65,8 +65,8 @@ kotlin {
 }
 
 dependencies {
-    // Pinned to https://github.com/nightshift-habits/qualtive-client-android/commit/b9739f913d28b026b302e167fdc3db16551d5f3c
-    implementation("io.qualtive:client:0.1.0-20260827.201847-2")
+    // Pinned to https://github.com/nightshift-habits/qualtive-client-android/commit/00e88474c22e44d67b36dfb48cdc0d93b22e33cd
+    implementation("io.qualtive:client:0.1.0-20260828.083152-3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     testImplementation("junit:junit:4.13.2")
 }

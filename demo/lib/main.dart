@@ -10,9 +10,7 @@ class DemoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: const FetchEnquiryPage(),
-    );
+    return MaterialApp(home: const FetchEnquiryPage());
   }
 }
 
@@ -25,6 +23,7 @@ class FetchEnquiryPage extends StatefulWidget {
 
 class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
   final _containerIdController = TextEditingController(text: 'ci-test');
+  final _workspaceIdController = TextEditingController();
   final _enquiryIdController = TextEditingController(text: 'flutter');
   String _status = 'Enter a container and enquiry id, then fetch or post.';
   bool _loading = false;
@@ -32,12 +31,18 @@ class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
   @override
   void dispose() {
     _containerIdController.dispose();
+    _workspaceIdController.dispose();
     _enquiryIdController.dispose();
     super.dispose();
   }
 
-  Qualtive _client() =>
-      Qualtive(containerId: _containerIdController.text.trim());
+  Qualtive _client() {
+    final workspaceId = _workspaceIdController.text.trim();
+    return Qualtive(
+      containerId: _containerIdController.text.trim(),
+      workspaceId: workspaceId.isEmpty ? null : workspaceId,
+    );
+  }
 
   Future<void> _fetch() async {
     setState(() {
@@ -123,6 +128,14 @@ class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
               controller: _containerIdController,
               decoration: const InputDecoration(
                 labelText: 'Container id',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _workspaceIdController,
+              decoration: const InputDecoration(
+                labelText: 'Workspace id (optional)',
                 border: OutlineInputBorder(),
               ),
             ),

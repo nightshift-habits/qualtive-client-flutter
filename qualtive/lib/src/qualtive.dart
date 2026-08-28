@@ -16,13 +16,16 @@ import 'qualtive_platform.dart';
 /// Create an instance with [Qualtive] and inject it in your app. Tests can fake
 /// `QualtivePlatform.instance` via `package:qualtive/qualtive_platform.dart`.
 class Qualtive {
-  Qualtive({
-    required this.containerId,
-    Locale? locale,
-  }) : locale = locale ?? PlatformDispatcher.instance.locale;
+  Qualtive({required this.containerId, this.workspaceId, Locale? locale})
+    : locale = locale ?? PlatformDispatcher.instance.locale;
 
-  /// Container (workspace) id this client talks to.
+  /// Container id this client talks to.
   final String containerId;
+
+  /// Optional workspace slug sent as `X-Workspace`.
+  ///
+  /// When omitted, the user API uses the container's default workspace.
+  final String? workspaceId;
 
   /// Locale used for localizable enquiry fields (`Accept-Language`).
   final Locale locale;
@@ -31,14 +34,12 @@ class Qualtive {
   ///
   /// [enquiryId] may be a slug or numeric id as a string.
   /// [previewToken] is optional for unpublished enquiry drafts.
-  Future<Enquiry> fetchEnquiry(
-    String enquiryId, {
-    String? previewToken,
-  }) async {
+  Future<Enquiry> fetchEnquiry(String enquiryId, {String? previewToken}) async {
     _requireEnquiryId(enquiryId);
 
     final payload = await QualtivePlatform.instance.fetchEnquiry(
       containerId: containerId,
+      workspaceId: workspaceId,
       enquiryId: enquiryId,
       locale: _localeToLanguageTag(locale),
       previewToken: previewToken,
@@ -64,6 +65,7 @@ class Qualtive {
 
     final payload = await QualtivePlatform.instance.post(
       containerId: containerId,
+      workspaceId: workspaceId,
       enquiryId: enquiryId,
       locale: _localeToLanguageTag(locale),
       content: encodeEntryContent(content),
@@ -83,6 +85,7 @@ class Qualtive {
   }) async {
     final payload = await QualtivePlatform.instance.uploadAttachment(
       containerId: containerId,
+      workspaceId: workspaceId,
       locale: _localeToLanguageTag(locale),
       contentType: contentType.mimeType,
       bytes: bytes,
@@ -104,6 +107,7 @@ class Qualtive {
 
     final payload = await QualtivePlatform.instance.uploadAttachment(
       containerId: containerId,
+      workspaceId: workspaceId,
       locale: _localeToLanguageTag(locale),
       contentType: contentType.mimeType,
       path: path,

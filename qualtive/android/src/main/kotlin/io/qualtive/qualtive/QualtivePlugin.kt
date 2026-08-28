@@ -68,6 +68,7 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
 
         val containerId = call.argument<String>("containerId")
+        val workspaceId = readWorkspaceId(call.argument("workspaceId"))
         val enquiryId = call.argument<String>("enquiryId")
         val localeTag = call.argument<String>("locale")
         val previewToken = call.argument<String>("previewToken")
@@ -79,7 +80,7 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
         activeScope.launch {
             try {
-                val client = createClient(context, containerId, localeTag)
+                val client = createClient(context, containerId, workspaceId, localeTag)
                 val enquiry = client.fetchEnquiry(enquiryId, previewToken)
                 result.success(EnquiryChannelMap.encode(enquiry))
             } catch (_: CancellationException) {
@@ -99,6 +100,7 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
 
         val containerId = call.argument<String>("containerId")
+        val workspaceId = readWorkspaceId(call.argument("workspaceId"))
         val enquiryId = call.argument<String>("enquiryId")
         val localeTag = call.argument<String>("locale")
         val contentRaw = call.argument<List<*>>("content")
@@ -112,7 +114,7 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
         activeScope.launch {
             try {
-                val client = createClient(context, containerId, localeTag)
+                val client = createClient(context, containerId, workspaceId, localeTag)
                 val entry =
                     client.post(
                         enquiryId = enquiryId,
@@ -139,6 +141,7 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
 
         val containerId = call.argument<String>("containerId")
+        val workspaceId = readWorkspaceId(call.argument("workspaceId"))
         val localeTag = call.argument<String>("locale")
         val contentTypeRaw = call.argument<String>("contentType")
         val bytes = call.argument<ByteArray>("bytes")
@@ -156,7 +159,7 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         val contentType = AttachmentContentType(contentTypeRaw)
         activeScope.launch {
             try {
-                val client = createClient(context, containerId, localeTag)
+                val client = createClient(context, containerId, workspaceId, localeTag)
                 val attachment =
                     if (bytes != null) {
                         client.uploadAttachment(bytes = bytes, contentType = contentType)
@@ -179,13 +182,17 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 private fun createClient(
     context: Context,
     containerId: String,
+    workspaceId: String?,
     localeTag: String,
 ): Qualtive =
     Qualtive(
         context = context,
         containerId = containerId,
+        workspaceId = workspaceId,
         config = QualtiveConfig(locale = Locale.forLanguageTag(localeTag)),
     )
+
+private fun readWorkspaceId(raw: String?): String? = raw?.trim()?.takeIf { it.isNotEmpty() }
 
 private fun replyError(result: MethodChannel.Result, error: Exception) {
     when (error) {

@@ -23,6 +23,15 @@ This library targets iOS and Android. The Dart API is the public surface; native
 
 First of all, make sure you have created a question on [qualtive.io](https://qualtive.io). Each feedback entry is posted to an enquiry (ID or slug) within your container.
 
+Optionally pass a workspace slug. When omitted, the user API uses the container's default workspace.
+
+```dart
+final qualtive = Qualtive(
+  containerId: 'my-company',
+  workspaceId: 'my-department',
+);
+```
+
 ### Fetching an enquiry
 
 ```dart

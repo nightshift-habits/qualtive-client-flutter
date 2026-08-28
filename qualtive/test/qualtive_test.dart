@@ -30,10 +30,7 @@ void main() {
             'type': 'predefined',
             'value': 'plain',
           },
-          'font': <Object?, Object?>{
-            'type': 'predefined',
-            'value': 'default',
-          },
+          'font': <Object?, Object?>{'type': 'predefined', 'value': 'default'},
           'isBackgroundAttachmentVisibleInResponses': true,
           'isBackgroundColorVisibleInResponses': true,
         },
@@ -82,6 +79,7 @@ void main() {
           expect(call.method, 'fetchEnquiry');
           expect(call.arguments, <String, Object?>{
             'containerId': 'ci-test',
+            'workspaceId': null,
             'enquiryId': 'web',
             'locale': 'en-US',
             'previewToken': 'tok',
@@ -153,6 +151,7 @@ void main() {
           expect(call.method, 'post');
           expect(call.arguments, <String, Object?>{
             'containerId': 'ci-test',
+            'workspaceId': null,
             'enquiryId': 'web',
             'locale': 'en-US',
             'content': <Object?>[
@@ -162,11 +161,7 @@ void main() {
                 'storageTarget': null,
               },
             ],
-            'user': <String, Object?>{
-              'id': 'u1',
-              'name': null,
-              'email': null,
-            },
+            'user': <String, Object?>{'id': 'u1', 'name': null, 'email': null},
             'customAttributes': <String, Object>{'age': 22},
             'options': <String, Object?>{
               'metadataCollection': 'none',
@@ -184,9 +179,7 @@ void main() {
       containerId: 'ci-test',
       enquiryId: 'web',
       locale: 'en-US',
-      content: encodeEntryContent([
-        const EntryText(value: 'Hello'),
-      ]),
+      content: encodeEntryContent([const EntryText(value: 'Hello')]),
       user: encodeUser(const User(id: 'u1')),
       customAttributes: const {'age': 22},
       options: encodePostOptions(
@@ -207,6 +200,7 @@ void main() {
           expect(call.method, 'uploadAttachment');
           expect(call.arguments, <String, Object?>{
             'containerId': 'ci-test',
+            'workspaceId': null,
             'locale': 'en',
             'contentType': 'image/png',
             'bytes': bytes,
@@ -240,7 +234,9 @@ void main() {
       () => Qualtive(containerId: 'c').post(
         'e',
         content: const [],
-        customAttributes: {'age': <int>[1]},
+        customAttributes: {
+          'age': <int>[1],
+        },
       ),
       throwsA(isA<ArgumentError>()),
     );
@@ -249,6 +245,51 @@ void main() {
   test('out of range score throws ArgumentError', () {
     expect(() => EntryScore(value: 101), throwsA(isA<ArgumentError>()));
   });
+
+  test('Qualtive forwards workspaceId to the platform', () async {
+    final fake = _FakeQualtivePlatform(payload: <Object?, Object?>{'id': 1});
+    QualtivePlatform.instance = fake;
+
+    final client = Qualtive(
+      containerId: 'ci-test',
+      workspaceId: 'my-department',
+    );
+    await client.post('demo', content: [const EntryText(value: 'Hello')]);
+    expect(fake.lastWorkspaceId, 'my-department');
+
+    await client.uploadAttachmentBytes(
+      Uint8List.fromList(const [1]),
+      contentType: AttachmentContentType.imagePng,
+    );
+    expect(fake.lastWorkspaceId, 'my-department');
+  });
+
+  test('MethodChannelQualtive sends workspaceId when set', () async {
+    const channel = MethodChannel('io.qualtive.qualtive');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'fetchEnquiry');
+          expect(call.arguments, <String, Object?>{
+            'containerId': 'ci-test',
+            'workspaceId': 'my-department',
+            'enquiryId': 'web',
+            'locale': 'en-US',
+            'previewToken': null,
+          });
+          return <String, Object?>{'ok': true};
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await MethodChannelQualtive().fetchEnquiry(
+      containerId: 'ci-test',
+      workspaceId: 'my-department',
+      enquiryId: 'web',
+      locale: 'en-US',
+    );
+  });
 }
 
 class _FakeQualtivePlatform extends QualtivePlatform
@@ -256,32 +297,45 @@ class _FakeQualtivePlatform extends QualtivePlatform
   _FakeQualtivePlatform({required this.payload});
 
   final Map<Object?, Object?> payload;
+  String? lastWorkspaceId;
 
   @override
   Future<Map<Object?, Object?>> fetchEnquiry({
     required String containerId,
+    String? workspaceId,
     required String enquiryId,
     required String locale,
     String? previewToken,
-  }) async => payload;
+  }) async {
+    lastWorkspaceId = workspaceId;
+    return payload;
+  }
 
   @override
   Future<Map<Object?, Object?>> post({
     required String containerId,
+    String? workspaceId,
     required String enquiryId,
     required String locale,
     required List<Map<String, Object?>> content,
     Map<String, Object?>? user,
     Map<String, Object> customAttributes = const {},
     Map<String, Object?> options = const {},
-  }) async => payload;
+  }) async {
+    lastWorkspaceId = workspaceId;
+    return payload;
+  }
 
   @override
   Future<Map<Object?, Object?>> uploadAttachment({
     required String containerId,
+    String? workspaceId,
     required String locale,
     required String contentType,
     Uint8List? bytes,
     String? path,
-  }) async => payload;
+  }) async {
+    lastWorkspaceId = workspaceId;
+    return payload;
+  }
 }
