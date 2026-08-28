@@ -26,6 +26,30 @@ abstract class QualtivePlatform extends PlatformInterface {
   }) {
     throw UnimplementedError('fetchEnquiry() has not been implemented.');
   }
+
+  /// Posts an entry. Success map contains `id`.
+  Future<Map<Object?, Object?>> post({
+    required String containerId,
+    required String enquiryId,
+    required String locale,
+    required List<Map<String, Object?>> content,
+    Map<String, Object?>? user,
+    Map<String, Object> customAttributes = const {},
+    Map<String, Object?> options = const {},
+  }) {
+    throw UnimplementedError('post() has not been implemented.');
+  }
+
+  /// Uploads an attachment from [bytes] or [path]. Success map contains `id`.
+  Future<Map<Object?, Object?>> uploadAttachment({
+    required String containerId,
+    required String locale,
+    required String contentType,
+    Uint8List? bytes,
+    String? path,
+  }) {
+    throw UnimplementedError('uploadAttachment() has not been implemented.');
+  }
 }
 
 class MethodChannelQualtive extends QualtivePlatform {
@@ -56,6 +80,68 @@ class MethodChannelQualtive extends QualtivePlatform {
       if (result == null) {
         throw const QualtiveUnexpectedException(
           'Native fetchEnquiry returned null',
+        );
+      }
+      return result;
+    } on PlatformException catch (error) {
+      throw _mapPlatformException(error);
+    }
+  }
+
+  @override
+  Future<Map<Object?, Object?>> post({
+    required String containerId,
+    required String enquiryId,
+    required String locale,
+    required List<Map<String, Object?>> content,
+    Map<String, Object?>? user,
+    Map<String, Object> customAttributes = const {},
+    Map<String, Object?> options = const {},
+  }) async {
+    try {
+      final result = await methodChannel.invokeMapMethod<Object?, Object?>(
+        'post',
+        <String, Object?>{
+          'containerId': containerId,
+          'enquiryId': enquiryId,
+          'locale': locale,
+          'content': content,
+          'user': user,
+          'customAttributes': customAttributes,
+          'options': options,
+        },
+      );
+      if (result == null) {
+        throw const QualtiveUnexpectedException('Native post returned null');
+      }
+      return result;
+    } on PlatformException catch (error) {
+      throw _mapPlatformException(error);
+    }
+  }
+
+  @override
+  Future<Map<Object?, Object?>> uploadAttachment({
+    required String containerId,
+    required String locale,
+    required String contentType,
+    Uint8List? bytes,
+    String? path,
+  }) async {
+    try {
+      final result = await methodChannel.invokeMapMethod<Object?, Object?>(
+        'uploadAttachment',
+        <String, Object?>{
+          'containerId': containerId,
+          'locale': locale,
+          'contentType': contentType,
+          'bytes': bytes,
+          'path': path,
+        },
+      );
+      if (result == null) {
+        throw const QualtiveUnexpectedException(
+          'Native uploadAttachment returned null',
         );
       }
       return result;

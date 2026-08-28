@@ -1,4 +1,5 @@
 import 'container.dart';
+import 'entry.dart';
 import 'page.dart';
 import 'submitted_page.dart';
 import 'theme.dart';
@@ -24,6 +25,17 @@ class Enquiry {
   final EnquiryTheme theme;
   final EnquiryContainer container;
   final bool isUserContactDetailsRequired;
+
+  /// Creates a flat list of empty [EntryContent] ready to be filled by the user.
+  ///
+  /// Pages are flattened. Static page content that is not part of an entry
+  /// (body, image, contact details) is omitted.
+  List<EntryContent> entryContentTemplate() {
+    return [
+      for (final page in pages)
+        for (final content in page.content) ?_templateContent(content),
+    ];
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -55,6 +67,27 @@ class Enquiry {
       'Enquiry(id: $id, slug: $slug, name: $name, pages: $pages, '
       'submittedPages: $submittedPages, theme: $theme, container: $container, '
       'isUserContactDetailsRequired: $isUserContactDetailsRequired)';
+}
+
+EntryContent? _templateContent(PageContent content) {
+  switch (content) {
+    case PageTitle():
+      return EntryTitle(text: content.text, definition: content);
+    case PageScore():
+      return EntryScore(value: null, definition: content);
+    case PageText():
+      return EntryText(value: null, definition: content);
+    case PageSelect():
+      return EntrySelect(value: null, definition: content);
+    case PageMultiselect():
+      return EntryMultiselect(values: const [], definition: content);
+    case PageAttachments():
+      return EntryAttachments(attachments: const [], definition: content);
+    case PageBody():
+    case PageImage():
+    case PageContactDetails():
+      return null;
+  }
 }
 
 bool _listEquals<T>(List<T> a, List<T> b) {

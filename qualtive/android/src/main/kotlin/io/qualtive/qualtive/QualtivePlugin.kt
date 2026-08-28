@@ -1,24 +1,31 @@
 package io.qualtive.qualtive
 
 import android.content.Context
+import android.net.Uri
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.qualtive.AttachmentContentType
 import io.qualtive.Container
 import io.qualtive.Enquiry
+import io.qualtive.MetadataCollection
 import io.qualtive.Page
+import io.qualtive.PostOptions
 import io.qualtive.Qualtive
 import io.qualtive.QualtiveConfig
 import io.qualtive.QualtiveException
 import io.qualtive.ScoreType
 import io.qualtive.SubmittedPage
 import io.qualtive.Theme
+import io.qualtive.User
+import io.qualtive.UserTrackingConsent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Locale
 
 class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
@@ -46,6 +53,8 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "fetchEnquiry" -> handleFetchEnquiry(call, result)
+            "post" -> handlePost(call, result)
+            "uploadAttachment" -> handleUploadAttachment(call, result)
             else -> result.notImplemented()
         }
     }
@@ -70,34 +79,176 @@ class QualtivePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
         activeScope.launch {
             try {
-                val client =
-                    Qualtive(
-                        context = context,
-                        containerId = containerId,
-                        config = QualtiveConfig(locale = Locale.forLanguageTag(localeTag)),
-                    )
+                val client = createClient(context, containerId, localeTag)
                 val enquiry = client.fetchEnquiry(enquiryId, previewToken)
                 result.success(EnquiryChannelMap.encode(enquiry))
             } catch (_: CancellationException) {
                 return@launch
-            } catch (error: QualtiveException.NotFound) {
-                result.error("notFound", error.message ?: "Not found", null)
-            } catch (error: QualtiveException.Connection) {
-                result.error("connection", error.message ?: "Connection failed", null)
-            } catch (error: QualtiveException.RemoteMaintenance) {
-                result.error(
-                    "remoteMaintenance",
-                    error.message ?: "Remote maintenance",
-                    null,
-                )
-            } catch (error: QualtiveException.Unexpected) {
-                result.error("unexpected", error.message ?: "Unexpected error", null)
             } catch (error: Exception) {
-                result.error("unexpected", error.message ?: "Unexpected error", null)
+                replyError(result, error)
+            }
+        }
+    }
+
+    private fun handlePost(call: MethodCall, result: MethodChannel.Result) {
+        val context = applicationContext
+        val activeScope = scope
+        if (context == null || activeScope == null) {
+            result.error("unexpected", "Plugin not attached", null)
+            return
+        }
+
+        val containerId = call.argument<String>("containerId")
+        val enquiryId = call.argument<String>("enquiryId")
+        val localeTag = call.argument<String>("locale")
+        val contentRaw = call.argument<List<*>>("content")
+
+        if (containerId.isNullOrBlank() || enquiryId.isNullOrBlank() || localeTag.isNullOrBlank() ||
+            contentRaw == null
+        ) {
+            result.error("unexpected", "Invalid post arguments", null)
+            return
+        }
+
+        activeScope.launch {
+            try {
+                val client = createClient(context, containerId, localeTag)
+                val entry =
+                    client.post(
+                        enquiryId = enquiryId,
+                        content = EntryChannelMap.decode(contentRaw),
+                        user = readUser(call.argument("user")),
+                        customAttributes = readCustomAttributes(call.argument("customAttributes")),
+                        options = readPostOptions(call.argument("options")),
+                    )
+                result.success(mapOf("id" to entry.id))
+            } catch (_: CancellationException) {
+                return@launch
+            } catch (error: Exception) {
+                replyError(result, error)
+            }
+        }
+    }
+
+    private fun handleUploadAttachment(call: MethodCall, result: MethodChannel.Result) {
+        val context = applicationContext
+        val activeScope = scope
+        if (context == null || activeScope == null) {
+            result.error("unexpected", "Plugin not attached", null)
+            return
+        }
+
+        val containerId = call.argument<String>("containerId")
+        val localeTag = call.argument<String>("locale")
+        val contentTypeRaw = call.argument<String>("contentType")
+        val bytes = call.argument<ByteArray>("bytes")
+        val path = call.argument<String>("path")
+
+        if (containerId.isNullOrBlank() || localeTag.isNullOrBlank() || contentTypeRaw.isNullOrBlank()) {
+            result.error("unexpected", "Invalid uploadAttachment arguments", null)
+            return
+        }
+        if (bytes == null && path.isNullOrBlank()) {
+            result.error("unexpected", "Invalid uploadAttachment arguments", null)
+            return
+        }
+
+        val contentType = AttachmentContentType(contentTypeRaw)
+        activeScope.launch {
+            try {
+                val client = createClient(context, containerId, localeTag)
+                val attachment =
+                    if (bytes != null) {
+                        client.uploadAttachment(bytes = bytes, contentType = contentType)
+                    } else {
+                        client.uploadAttachment(
+                            uri = uriFromPath(path!!),
+                            contentType = contentType,
+                        )
+                    }
+                result.success(mapOf("id" to attachment.id))
+            } catch (_: CancellationException) {
+                return@launch
+            } catch (error: Exception) {
+                replyError(result, error)
             }
         }
     }
 }
+
+private fun createClient(
+    context: Context,
+    containerId: String,
+    localeTag: String,
+): Qualtive =
+    Qualtive(
+        context = context,
+        containerId = containerId,
+        config = QualtiveConfig(locale = Locale.forLanguageTag(localeTag)),
+    )
+
+private fun replyError(result: MethodChannel.Result, error: Exception) {
+    when (error) {
+        is QualtiveException.NotFound ->
+            result.error("notFound", error.message ?: "Not found", null)
+        is QualtiveException.Connection ->
+            result.error("connection", error.message ?: "Connection failed", null)
+        is QualtiveException.RemoteMaintenance ->
+            result.error(
+                "remoteMaintenance",
+                error.message ?: "Remote maintenance",
+                null,
+            )
+        is QualtiveException.Unexpected ->
+            result.error("unexpected", error.message ?: "Unexpected error", null)
+        else -> result.error("unexpected", error.message ?: "Unexpected error", null)
+    }
+}
+
+private fun readUser(raw: Any?): User? {
+    val map = raw as? Map<*, *> ?: return null
+    return User(
+        id = map["id"] as? String,
+        name = map["name"] as? String,
+        email = map["email"] as? String,
+    )
+}
+
+private fun readCustomAttributes(raw: Any?): Map<String, Any> {
+    val map = raw as? Map<*, *> ?: return emptyMap()
+    val result = linkedMapOf<String, Any>()
+    for ((key, value) in map) {
+        if (key is String && value != null) {
+            result[key] = value
+        }
+    }
+    return result
+}
+
+private fun readPostOptions(raw: Any?): PostOptions {
+    val map = raw as? Map<*, *> ?: return PostOptions()
+    val metadata =
+        when (map["metadataCollection"] as? String) {
+            "none" -> MetadataCollection.None
+            else -> MetadataCollection.NonPersonal
+        }
+    val consent =
+        when (map["userTrackingConsent"] as? String) {
+            "denied" -> UserTrackingConsent.Denied
+            else -> UserTrackingConsent.Granted
+        }
+    return PostOptions(
+        metadataCollection = metadata,
+        userTrackingConsent = consent,
+    )
+}
+
+private fun uriFromPath(path: String): Uri =
+    if (path.startsWith("content:") || path.startsWith("file:")) {
+        Uri.parse(path)
+    } else {
+        Uri.fromFile(File(path))
+    }
 
 internal object EnquiryChannelMap {
     fun encode(enquiry: Enquiry): Map<String, Any?> =

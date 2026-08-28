@@ -26,7 +26,7 @@ class FetchEnquiryPage extends StatefulWidget {
 class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
   final _containerIdController = TextEditingController(text: 'ci-test');
   final _enquiryIdController = TextEditingController(text: 'flutter');
-  String _status = 'Enter a container and enquiry id, then fetch.';
+  String _status = 'Enter a container and enquiry id, then fetch or post.';
   bool _loading = false;
 
   @override
@@ -36,6 +36,9 @@ class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
     super.dispose();
   }
 
+  Qualtive _client() =>
+      Qualtive(containerId: _containerIdController.text.trim());
+
   Future<void> _fetch() async {
     setState(() {
       _loading = true;
@@ -43,8 +46,7 @@ class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
     });
 
     try {
-      final client = Qualtive(containerId: _containerIdController.text.trim());
-      final enquiry = await client.fetchEnquiry(
+      final enquiry = await _client().fetchEnquiry(
         _enquiryIdController.text.trim(),
       );
       setState(() {
@@ -52,6 +54,44 @@ class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
             'Fetched "${enquiry.name}" (${enquiry.slug})\n'
             'pages: ${enquiry.pages.length}, '
             'submittedPages: ${enquiry.submittedPages.length}';
+      });
+    } on QualtiveException catch (error) {
+      setState(() {
+        _status = 'Error: $error';
+      });
+    } on Object catch (error) {
+      setState(() {
+        _status = 'Unexpected: $error';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _post() async {
+    setState(() {
+      _loading = true;
+      _status = 'Posting…';
+    });
+
+    try {
+      final entry = await _client().post(
+        _enquiryIdController.text.trim(),
+        content: [
+          EntryScore(value: 75),
+          const EntryText(value: 'Hello from the Flutter demo'),
+        ],
+        options: const PostOptions(
+          metadataCollection: MetadataCollection.none,
+          userTrackingConsent: UserTrackingConsent.denied,
+        ),
+      );
+      setState(() {
+        _status = 'Posted entry id ${entry.id}';
       });
     } on QualtiveException catch (error) {
       setState(() {
@@ -97,7 +137,12 @@ class _FetchEnquiryPageState extends State<FetchEnquiryPage> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _loading ? null : _fetch,
-              child: Text(_loading ? 'Fetching…' : 'Fetch enquiry'),
+              child: Text(_loading ? 'Working…' : 'Fetch enquiry'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: _loading ? null : _post,
+              child: const Text('Post sample entry'),
             ),
             const SizedBox(height: 24),
             Text(_status),

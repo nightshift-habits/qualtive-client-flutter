@@ -43,6 +43,29 @@ void main() {
       expect(enquiry.container.visibilityMode, EnquiryVisibility.private);
     });
 
+    test('entryContentTemplate flattens input types', () {
+      final enquiry = parseEnquiry(jsonDecode(_fullPayload));
+      final template = enquiry.entryContentTemplate();
+
+      expect(template, hasLength(6));
+      expect(template[0], isA<EntryScore>());
+      expect(template[1], isA<EntryTitle>());
+      expect(template[2], isA<EntryText>());
+      expect(template[3], isA<EntrySelect>());
+      expect(template[4], isA<EntryMultiselect>());
+      expect(template[5], isA<EntryAttachments>());
+
+      final score = template[0] as EntryScore;
+      expect(score.value, isNull);
+      expect(score.definition?.scoreType, ScoreType.stars5);
+
+      final text = template[2] as EntryText;
+      expect(
+        text.definition?.storageTarget,
+        const TextStorageTargetAttribute(attribute: 'Age'),
+      );
+    });
+
     test('skips unknown score type and keeps other content', () {
       final enquiry = parseEnquiry(jsonDecode(_unknownScorePayload));
 

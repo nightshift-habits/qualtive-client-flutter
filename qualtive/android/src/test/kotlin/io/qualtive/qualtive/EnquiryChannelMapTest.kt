@@ -103,7 +103,9 @@ class EnquiryChannelMapTest {
             Container(
                 id = "ci-test",
                 isWhiteLabel = false,
+                logo = null,
                 customLogos = emptyList(),
+                version = "qualtive",
                 visibilityMode = Container.VisibilityMode.Private,
             ),
             isUserContactDetailsRequired = false,
