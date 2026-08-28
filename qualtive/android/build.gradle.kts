@@ -1,5 +1,5 @@
 group = "io.qualtive.qualtive"
-version = "0.0.1"
+version = "0.0.2"
 
 buildscript {
     val kotlinVersion = "2.4.0"

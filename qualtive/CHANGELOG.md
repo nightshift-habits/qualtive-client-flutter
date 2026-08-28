@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.0.2
+
 ### Added
 
 - Optional `workspaceId` on `Qualtive(...)`, sent as the `X-Workspace` header.

@@ -12,7 +12,7 @@ Or in `pubspec.yaml`:
 
 ```
 dependencies:
-  qualtive: ^0.0.1
+  qualtive: ^0.0.2
 ```
 
 Minimum versions: iOS 15, Android API 24.
