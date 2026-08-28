@@ -2,3 +2,4 @@ darwin/qualtive/qualtive-client-swift/Tests/**
 darwin/qualtive/qualtive-client-swift/.github/**
 darwin/qualtive/qualtive-client-swift/.git
 darwin/qualtive/qualtive-client-swift/.gitignore
+darwin/qualtive/qualtive-client-swift/.swiftpm/**
