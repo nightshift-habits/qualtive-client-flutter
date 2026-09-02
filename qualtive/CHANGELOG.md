@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.0.3
+
+- Lengthen the package description to meet pub.dev conventions.
+- Move the demo app to `example/` so the package has a pub.dev example.
+- Require `plugin_platform_interface` 2.1.0 so analysis works at the constraint lower bound.
+
 ## 0.0.2
 
 ### Added

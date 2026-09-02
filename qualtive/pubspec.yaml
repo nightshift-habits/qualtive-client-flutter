@@ -1,6 +1,6 @@
 name: qualtive
 description: Flutter client for Qualtive. Fetch enquiries and post feedback with scores, text, users, and attachments on iOS and Android.
-version: 0.0.2
+version: 0.0.3
 homepage: https://qualtive.io
 repository: https://github.com/nightshift-habits/qualtive-client-flutter
 issue_tracker: https://github.com/nightshift-habits/qualtive-client-flutter/issues
