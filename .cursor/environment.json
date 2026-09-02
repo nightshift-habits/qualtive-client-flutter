@@ -1,0 +1,17 @@
+{
+  "name": "Qualtive Flutter client",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "demo (web)",
+      "command": "cd demo && flutter run -d web-server --web-port 8080 --web-hostname 0.0.0.0",
+      "description": "Runs the Qualtive demo Flutter app as a web server on http://localhost:8080."
+    }
+  ],
+  "ports": [
+    {
+      "name": "demo web server",
+      "port": 8080
+    }
+  ]
+}
