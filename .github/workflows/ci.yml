@@ -28,6 +28,18 @@ jobs:
       - name: Test
         working-directory: qualtive
         run: flutter test
+      - name: Downgrade dependencies
+        working-directory: qualtive
+        run: flutter pub downgrade
+      - name: Analyze downgraded
+        working-directory: qualtive
+        run: dart analyze --fatal-infos
+      - name: Test downgraded
+        working-directory: qualtive
+        run: flutter test
+      - name: Restore dependencies
+        working-directory: qualtive
+        run: flutter pub upgrade
       - name: Get example dependencies
         working-directory: qualtive/example
         run: flutter pub get
