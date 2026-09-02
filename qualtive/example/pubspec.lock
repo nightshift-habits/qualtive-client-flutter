@@ -181,7 +181,7 @@ packages:
   qualtive:
     dependency: "direct main"
     description:
-      path: "../qualtive"
+      path: ".."
       relative: true
     source: path
     version: "0.0.1"

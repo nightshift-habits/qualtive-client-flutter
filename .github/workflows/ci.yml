@@ -28,12 +28,12 @@ jobs:
       - name: Test
         working-directory: qualtive
         run: flutter test
-      - name: Get demo dependencies
-        working-directory: demo
+      - name: Get example dependencies
+        working-directory: qualtive/example
         run: flutter pub get
-      - name: Analyze demo
-        working-directory: demo
+      - name: Analyze example
+        working-directory: qualtive/example
         run: dart analyze --fatal-infos
-      - name: Test demo
-        working-directory: demo
+      - name: Test example
+        working-directory: qualtive/example
         run: flutter test

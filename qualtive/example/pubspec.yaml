@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   qualtive:
-    path: ../qualtive
+    path: ../
 
 dev_dependencies:
   flutter_test:
